@@ -1,0 +1,77 @@
+# Docker Compose for Development (root user)
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: fiber-gorm-app-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - go-modules:/go/pkg/mod
+    environment:
+      - APP_NAME=${APP_NAME:-fiber-gorm-app}
+      - APP_ENV=development
+      - APP_PORT=3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER:-postgres}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - DB_NAME=${POSTGRES_DB:-fiber_gorm_db}
+      - DB_SSLMODE=disable
+      - DB_TIMEZONE=Asia/Jakarta
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fiber-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: fiber-postgres-dev
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-fiber_gorm_db}
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-fiber_gorm_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fiber-network
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fiber-pgadmin-dev
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@admin.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    volumes:
+      - pgadmin-data-dev:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - fiber-network
+    restart: unless-stopped
+
+networks:
+  fiber-network:
+    driver: bridge
+
+volumes:
+  postgres-data-dev:
+  pgadmin-data-dev:
+  go-modules:

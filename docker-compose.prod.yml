@@ -1,0 +1,93 @@
+# Docker Compose for Production (non-root user)
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: fiber-gorm-app-prod
+    ports:
+      - "3000:3000"
+    environment:
+      - APP_NAME=${APP_NAME:-fiber-gorm-app}
+      - APP_ENV=production
+      - APP_PORT=3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER:-postgres}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - DB_NAME=${POSTGRES_DB:-fiber_gorm_db}
+      - DB_SSLMODE=disable
+      - DB_TIMEZONE=Asia/Jakarta
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - fiber-network-prod
+    restart: always
+    # Security: Read-only root filesystem
+    read_only: true
+    # Security: Drop all capabilities
+    cap_drop:
+      - ALL
+    # Security: No new privileges
+    security_opt:
+      - no-new-privileges:true
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: fiber-postgres-prod
+    # Don't expose port in production, only accessible through network
+    # ports:
+    #   - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-fiber_gorm_db}
+    volumes:
+      - postgres-data-prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-fiber_gorm_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fiber-network-prod
+    restart: always
+    # Security: Read-only root filesystem (PostgreSQL needs write access to data dir)
+    # read_only: true
+    # Security: Drop all capabilities except required ones
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+      - FOWNER
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: fiber-pgadmin-prod
+    ports:
+      - "5050:80"
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@admin.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
+      - PGADMIN_CONFIG_SERVER_MODE=True
+    volumes:
+      - pgadmin-data-prod:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - fiber-network-prod
+    restart: always
+
+networks:
+  fiber-network-prod:
+    driver: bridge
+
+volumes:
+  postgres-data-prod:
+  pgadmin-data-prod:
