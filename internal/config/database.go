@@ -40,6 +40,17 @@ func InitDB() {
 	// Auto migrate
 	err = DB.AutoMigrate(
 		&models.User{},
+		&models.Membership{},
+		&models.AttendanceLog{},
+		&models.WorkoutProgress{},
+		&models.Template{},
+		&models.UserTemplateFollow{},
+		&models.Target{},
+		&models.TargetProgress{},
+		&models.Trainer{},
+		&models.TrainerSchedule{},
+		&models.Notification{},
+		&models.UserSetting{},
 	)
 
 	if err != nil {
@@ -47,6 +58,18 @@ func InitDB() {
 	}
 
 	log.Println("Database migrated successfully")
+
+	if shouldSeed() {
+		if err := SeedDevelopmentData(DB); err != nil {
+			log.Printf("Seed skipped/failed: %v", err)
+		} else {
+			log.Println("Database seeded successfully")
+		}
+	}
+}
+
+func shouldSeed() bool {
+	return os.Getenv("DB_SEED") == "true"
 }
 
 func GetDB() *gorm.DB {

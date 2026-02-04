@@ -196,47 +196,101 @@ Response ← Handler ← Service ← Repository ← Database
 ## 📁 Struktur Project
 
 ```
-fiber-gorm-app/
+revoks-gym-backend/
 │
 ├── 📂 cmd/                          # Entry point aplikasi
 │   └── main.go                      # File utama untuk menjalankan server
 │
 ├── 📂 internal/                     # Kode internal aplikasi
-│   │
-│   ├── 📂 config/                   # Konfigurasi
-│   │   └── database.go              # Setup koneksi PostgreSQL
-│   │
+│   ├── 📂 config/                   # Konfigurasi (DB + seeding)
+│   │   ├── database.go
+│   │   └── seed.go
 │   ├── 📂 dto/                      # Data Transfer Objects
-│   │   ├── common_dto.go            # DTO umum (Response, Pagination)
-│   │   ├── user_dto.go              # DTO untuk User
-│   │   ├── 📂 request/              # Request DTOs
+│   │   ├── attendance_dto.go
+│   │   ├── auth_dto.go
+│   │   ├── common_dto.go
+│   │   ├── membership_dto.go
+│   │   ├── notification_dto.go
+│   │   ├── qr_dto.go
+│   │   ├── settings_dto.go
+│   │   ├── target_dto.go
+│   │   ├── template_dto.go
+│   │   ├── trainer_dto.go
+│   │   ├── user_dto.go
+│   │   ├── workout_dto.go
+│   │   ├── 📂 request/
 │   │   │   └── user_request.go
-│   │   └── 📂 response/             # Response DTOs
+│   │   └── 📂 response/
 │   │       └── user_response.go
-│   │
 │   ├── 📂 handlers/                 # HTTP Handlers (Controllers)
-│   │   ├── handler.go               # Aggregator semua handlers
-│   │   └── user_handler.go          # Handler untuk User endpoints
-│   │
+│   │   ├── attendance_handler.go
+│   │   ├── auth_handler.go
+│   │   ├── handler.go
+│   │   ├── membership_handler.go
+│   │   ├── me_handler.go
+│   │   ├── notification_handler.go
+│   │   ├── qr_handler.go
+│   │   ├── setting_handler.go
+│   │   ├── target_handler.go
+│   │   ├── template_handler.go
+│   │   ├── trainer_handler.go
+│   │   ├── user_handler.go
+│   │   └── workout_handler.go
+│   ├── 📂 middleware/               # Auth middleware
+│   │   └── auth.go
 │   ├── 📂 models/                   # Database Models (Entities)
-│   │   └── user.go                  # Model User (representasi tabel)
-│   │
+│   │   ├── attendance.go
+│   │   ├── membership.go
+│   │   ├── notification.go
+│   │   ├── setting.go
+│   │   ├── target.go
+│   │   ├── template.go
+│   │   ├── trainer.go
+│   │   ├── user.go
+│   │   └── workout_progress.go
 │   ├── 📂 repository/               # Data Access Layer
-│   │   ├── repository.go            # Aggregator semua repositories
-│   │   └── user_repository.go       # Repository untuk User
-│   │
+│   │   ├── attendance_repository.go
+│   │   ├── membership_repository.go
+│   │   ├── notification_repository.go
+│   │   ├── repository.go
+│   │   ├── setting_repository.go
+│   │   ├── target_repository.go
+│   │   ├── template_repository.go
+│   │   ├── trainer_repository.go
+│   │   ├── user_repository.go
+│   │   └── workout_repository.go
 │   ├── 📂 routes/                   # Route Definitions
-│   │   └── routes.go                # Semua endpoint API
-│   │
-│   └── 📂 services/                 # Business Logic Layer
-│       ├── service.go               # Aggregator semua services
-│       └── user_service.go          # Service untuk User
+│   │   └── routes.go
+│   ├── 📂 services/                 # Business Logic Layer
+│   │   ├── attendance_service.go
+│   │   ├── auth_service.go
+│   │   ├── membership_service.go
+│   │   ├── notification_service.go
+│   │   ├── qr_service.go
+│   │   ├── service.go
+│   │   ├── setting_service.go
+│   │   ├── target_service.go
+│   │   ├── template_service.go
+│   │   ├── trainer_service.go
+│   │   ├── user_service.go
+│   │   └── workout_service.go
+│   └── 📂 utils/                    # Helpers (JWT, dll)
+│       └── jwt.go
+│
+├── 📂 scripts/                      # Script helper & testing
+│   ├── run.sh
+│   ├── smoke-test.ps1
+│   └── smoke-test.sh
+│
+├── 📂 tmp/                          # Folder sementara (Air)
+│   └── main
+│
+├── 📂 .git/                          # Metadata git (tidak perlu diedit)
+│   └── (git internal files)
 │
 ├── 📄 .air.toml                     # Konfigurasi hot reload (Air)
-├── 📄 .dockerignore                 # File yang diabaikan Docker
 ├── 📄 .env                          # Environment variables
 ├── 📄 .env.example                  # Contoh environment variables
-├── 📄 .gitignore                    # File yang diabaikan Git
 │
 ├── 🐳 docker-compose.dev.yml        # Docker Compose untuk Development
 ├── 🐳 docker-compose.prod.yml       # Docker Compose untuk Production
@@ -244,8 +298,8 @@ fiber-gorm-app/
 ├── 🐳 Dockerfile.prod               # Dockerfile untuk Production
 │
 ├── 📄 go.mod                        # Go module dependencies
+├── 📄 go.sum                        # Go module checksums
 ├── 📄 Makefile                      # Make commands
-├── 📄 run.sh                        # Shell script shortcuts
 └── 📄 README.md                     # Dokumentasi ini
 ```
 
@@ -411,8 +465,8 @@ Pastikan sudah terinstall:
 
 #### 1. Clone Repository
 ```bash
-cd /Users/rasya2121/Documents/code/revoks-gym/revoks-gym-backend
-cd fiber-gorm-app
+git clone <repo-url>
+cd revoks-gym-backend
 ```
 
 #### 2. Setup Environment Variables
@@ -426,13 +480,14 @@ nano .env
 
 #### 3. Beri Permission Script
 ```bash
-chmod +x run.sh
+chmod +x ./scripts/run.sh
+chmod +x ./scripts/smoke-test.sh
 ```
 
 #### 4. Jalankan Development Environment
 ```bash
 # Menggunakan shell script
-./run.sh dev:up
+./scripts/run.sh dev:up
 
 # ATAU menggunakan Makefile
 make dev-up
@@ -444,13 +499,13 @@ docker compose -f docker-compose.dev.yml up -d --build
 #### 5. Verifikasi Aplikasi Berjalan
 ```bash
 # Cek status container
-./run.sh status
+./scripts/run.sh status
 
 # Cek health endpoint
 curl http://localhost:3000/health
 
 # Lihat logs
-./run.sh dev:logs
+./scripts/run.sh dev:logs
 ```
 
 ### 📍 Access Points
@@ -493,12 +548,35 @@ http://localhost:3000
 | Method | Endpoint | Deskripsi |
 |--------|----------|-----------|
 | GET | `/health` | Health check server |
+| POST | `/api/v1/auth/login` | Login dan mendapatkan access token (JWT) |
+| GET | `/api/v1/me` | Ambil profile user yang sedang login |
 | POST | `/api/v1/users` | Buat user baru |
 | GET | `/api/v1/users` | Ambil semua users (dengan pagination) |
 | GET | `/api/v1/users/:id` | Ambil user berdasarkan ID |
 | PUT | `/api/v1/users/:id` | Update user |
 | DELETE | `/api/v1/users/:id` | Hapus user |
 | PUT | `/api/v1/users/:id/password` | Ganti password user |
+| GET | `/api/v1/membership` | Status membership + history |
+| POST | `/api/v1/membership/renew` | Renew membership (CTA Renew) |
+| GET | `/api/v1/qr/code` | Generate QR token untuk akses gate |
+| POST | `/api/v1/qr/scan` | Validasi hasil scan gate (Accepted/Rejected) |
+| GET | `/api/v1/attendance/history` | Attendance history (IN/OUT) |
+| GET | `/api/v1/workouts/progress` | Workout progress history |
+| POST | `/api/v1/workouts/progress` | Tambah workout progress |
+| GET | `/api/v1/templates/followed` | Followed templates |
+| GET | `/api/v1/templates/:id` | Template detail |
+| POST | `/api/v1/templates/follow` | Follow template |
+| GET | `/api/v1/targets` | Targets (weekly/monthly) |
+| GET | `/api/v1/targets/:id/progress` | Progress history target |
+| POST | `/api/v1/targets/:id/progress` | Add/update progress target |
+| GET | `/api/v1/pt` | PT list |
+| GET | `/api/v1/pt/:id` | PT detail |
+| GET | `/api/v1/pt/:id/schedule` | PT schedule |
+| GET | `/api/v1/notifications` | Notifications list (bell icon) |
+| GET | `/api/v1/notifications/:id` | Notification detail |
+| PUT | `/api/v1/notifications/:id/read` | Mark notification as read |
+| GET | `/api/v1/settings` | Settings |
+| PUT | `/api/v1/settings` | Update settings |
 
 ### Query Parameters
 
@@ -510,6 +588,106 @@ http://localhost:3000
 ---
 
 ## 📝 Contoh Penggunaan API
+
+## 🧭 Alur Mobile App → Backend (sesuai gambar)
+
+### 1) AUTH
+
+- **Splash / Boot**
+  - Mobile cek ada token tersimpan.
+  - Jika ada: call `GET /api/v1/me`.
+    - `200` → **authenticated** masuk ke MAIN.
+    - `401` → **not authenticated** arahkan ke Login.
+- **Login**
+  - `POST /api/v1/auth/login` → simpan `access_token`.
+  - Setelah **login success** → `GET /api/v1/me` untuk hydrate profile.
+
+### 2) MAIN (Bottom Tab Bar)
+
+- **Home Tab**
+  - Home Dashboard (future agregasi)
+  - PT Online List (preview) → `GET /api/v1/pt`
+  - Membership Status (preview) → `GET /api/v1/membership`
+  - CTA Renew → `POST /api/v1/membership/renew`
+
+- **Activity Tab**
+  - Attendance History (IN/OUT) → `GET /api/v1/attendance/history`
+  - Workout Progress History → `GET /api/v1/workouts/progress`
+  - Add/Update Progress → `POST /api/v1/workouts/progress`
+
+- **QR Tab (QR ACCESS)**
+  - My QR Code → `GET /api/v1/qr/code` (token pendek, aman untuk ditampilkan)
+  - Gate scan device → `POST /api/v1/qr/scan`
+    - Response: `accepted/rejected`
+    - Setelah gate response → app bisa request QR lagi (show QR again)
+  - Jika membership **EXPIRED** → backend akan `rejected` dengan reason `membership_required` / `membership_expired` (Locked: Membership Required)
+
+- **Program Tab**
+  - Followed Templates → `GET /api/v1/templates/followed`
+  - Template Detail → `GET /api/v1/templates/:id`
+  - Targets (Weekly/Monthly) → `GET /api/v1/targets?period=weekly|monthly`
+  - Add/Update Progress → `POST /api/v1/targets/:id/progress`
+
+- **Profile Tab**
+  - My Profile → `GET /api/v1/me`
+  - Membership (Status + History + Renew) → `GET /api/v1/membership` + `POST /api/v1/membership/renew`
+  - PT List / PT Detail / PT Schedule → `GET /api/v1/pt`, `GET /api/v1/pt/:id`, `GET /api/v1/pt/:id/schedule`
+  - Settings → `GET/PUT /api/v1/settings`
+
+### 3) NOTIFICATIONS (global)
+
+- Bell icon dari tab manapun:
+  - Notifications List → `GET /api/v1/notifications`
+  - Notification Detail → `GET /api/v1/notifications/:id`
+  - Mark read → `PUT /api/v1/notifications/:id/read`
+
+### State / Flow rules yang dipakai backend
+
+- **not authenticated**: request ke endpoint protected akan `401 Unauthorized`.
+- **authenticated**: request wajib pakai header `Authorization: Bearer <token>`.
+- **membership ACTIVE/EXPIRED**:
+  - Membership dianggap **ACTIVE** jika record terakhir `status=active` dan `ends_at` masih di masa depan.
+  - QR scan akan **Rejected** jika membership tidak aktif.
+
+### Smoke Test Otomatis (PowerShell)
+
+Script ini akan menjalankan flow end-to-end: health → (optional create user) → login → me → membership → (optional renew) → QR → attendance → workouts → settings → notifications → PT.
+
+Jalankan dari root project:
+
+```powershell
+./scripts/smoke-test.ps1
+```
+
+Opsi flags (`true/false`, `1/0`, termasuk `$true/$false`):
+
+```powershell
+# Skip renew membership (tetap lanjut walau QR rejected)
+./scripts/smoke-test.ps1 -RenewMembership 0
+
+# Pakai existing user (wajib isi Email/Password)
+./scripts/smoke-test.ps1 -CreateUser 0 -Email "you@example.com" -Password "password123"
+```
+
+### Smoke Test Otomatis (macOS / Linux)
+
+Script Bash dengan `curl` + `python3` (tanpa `jq`). Pastikan `curl` dan `python3` tersedia di PATH. Jalankan dari root project:
+
+```bash
+chmod +x ./scripts/smoke-test.sh
+./scripts/smoke-test.sh
+```
+
+Contoh opsi:
+
+```bash
+# Skip renew membership
+./scripts/smoke-test.sh --renew-membership 0
+
+# Pakai existing user (wajib isi email/password)
+./scripts/smoke-test.sh --create-user 0 --email you@example.com --password password123
+```
+
 
 ### Health Check
 ```bash
@@ -608,21 +786,21 @@ curl -X PUT http://localhost:3000/api/v1/users/1/password \
 
 ## 🔧 Perintah Shortcut
 
-### Shell Script (run.sh)
+### Shell Script (scripts/run.sh)
 
 | Perintah | Fungsi |
 |----------|--------|
-| `./run.sh dev:up` | Start development dengan hot reload |
-| `./run.sh dev:down` | Stop development |
-| `./run.sh dev:logs` | Lihat semua logs development |
-| `./run.sh dev:logs:app` | Lihat logs app saja |
-| `./run.sh dev:restart` | Restart development |
-| `./run.sh dev:rebuild` | Rebuild dan restart development |
-| `./run.sh prod:up` | Start production |
-| `./run.sh prod:down` | Stop production |
-| `./run.sh status` | Lihat status container |
-| `./run.sh clean:all` | Hapus semua resources Docker |
-| `./run.sh help` | Tampilkan bantuan |
+| `./scripts/run.sh dev:up` | Start development dengan hot reload |
+| `./scripts/run.sh dev:down` | Stop development |
+| `./scripts/run.sh dev:logs` | Lihat semua logs development |
+| `./scripts/run.sh dev:logs:app` | Lihat logs app saja |
+| `./scripts/run.sh dev:restart` | Restart development |
+| `./scripts/run.sh dev:rebuild` | Rebuild dan restart development |
+| `./scripts/run.sh prod:up` | Start production |
+| `./scripts/run.sh prod:down` | Stop production |
+| `./scripts/run.sh status` | Lihat status container |
+| `./scripts/run.sh clean:all` | Hapus semua resources Docker |
+| `./scripts/run.sh help` | Tampilkan bantuan |
 
 ### Makefile
 

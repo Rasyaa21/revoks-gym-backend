@@ -1,0 +1,27 @@
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Go build artifacts
+/tmp/
+*.exe
+*.exe~
+*.out
+*.test
+*.prof
+
+# Air build output (project uses /tmp)
+tmp/
+
+# Logs
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Backups created by scripts
+backup_*.sql

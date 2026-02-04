@@ -16,6 +16,9 @@ services:
       - APP_NAME=${APP_NAME:-fiber-gorm-app}
       - APP_ENV=development
       - APP_PORT=3000
+      - JWT_SECRET=${JWT_SECRET:-dev-secret}
+      - JWT_ACCESS_TTL_MINUTES=${JWT_ACCESS_TTL_MINUTES:-1440}
+      - DB_SEED=${DB_SEED:-false}
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=${POSTGRES_USER:-postgres}

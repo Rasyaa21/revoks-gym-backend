@@ -16,11 +16,11 @@ type PaginationResponse struct {
 
 // APIResponse represents a standard API response
 type APIResponse struct {
-	Success    bool        `json:"success"`
-	Message    string      `json:"message"`
-	Data       interface{} `json:"data,omitempty"`
+	Success    bool                `json:"success"`
+	Message    string              `json:"message"`
+	Data       interface{}         `json:"data,omitempty"`
 	Pagination *PaginationResponse `json:"pagination,omitempty"`
-	Error      string      `json:"error,omitempty"`
+	Error      string              `json:"error,omitempty"`
 }
 
 // NewSuccessResponse creates a success response
