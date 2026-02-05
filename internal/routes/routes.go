@@ -64,6 +64,7 @@ func SetupRoutes(app *fiber.App) {
 	authed.Get("/templates/:id", handler.Template.Detail)
 	authed.Post("/templates/follow", handler.Template.Follow)
 	authed.Get("/targets", handler.Target.MyTargets)
+	authed.Post("/targets", handler.Target.Create)
 	authed.Get("/targets/:id/progress", handler.Target.ProgressHistory)
 	authed.Post("/targets/:id/progress", handler.Target.AddProgress)
 

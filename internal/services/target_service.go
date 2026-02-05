@@ -10,6 +10,7 @@ import (
 
 type TargetService interface {
 	MyTargets(userID uint, period string) ([]dto.TargetResponse, error)
+	CreateTarget(userID uint, req *dto.CreateTargetRequest) (*dto.TargetResponse, error)
 	AddProgress(userID uint, targetID uint, req *dto.AddTargetProgressRequest) (*dto.TargetProgressResponse, error)
 	ProgressHistory(userID uint, targetID uint, limit int) ([]dto.TargetProgressResponse, error)
 }
@@ -39,6 +40,53 @@ func (s *targetService) MyTargets(userID uint, period string) ([]dto.TargetRespo
 		})
 	}
 	return resp, nil
+}
+
+func (s *targetService) CreateTarget(userID uint, req *dto.CreateTargetRequest) (*dto.TargetResponse, error) {
+	if req == nil {
+		return nil, errors.New("invalid request")
+	}
+	if req.Period == "" {
+		return nil, errors.New("period is required")
+	}
+	if req.Title == "" {
+		return nil, errors.New("title is required")
+	}
+	if req.GoalValue <= 0 {
+		return nil, errors.New("goal_value must be greater than 0")
+	}
+	start, err := time.Parse(time.RFC3339, req.StartDate)
+	if err != nil {
+		return nil, errors.New("start_date must be RFC3339")
+	}
+	end, err := time.Parse(time.RFC3339, req.EndDate)
+	if err != nil {
+		return nil, errors.New("end_date must be RFC3339")
+	}
+	if !end.After(start) {
+		return nil, errors.New("end_date must be after start_date")
+	}
+
+	t := &models.Target{
+		UserID:    userID,
+		Period:    req.Period,
+		Title:     req.Title,
+		GoalValue: req.GoalValue,
+		StartDate: start,
+		EndDate:   end,
+	}
+	if err := s.repo.Create(t); err != nil {
+		return nil, err
+	}
+
+	return &dto.TargetResponse{
+		ID:        t.ID,
+		Period:    t.Period,
+		Title:     t.Title,
+		GoalValue: t.GoalValue,
+		StartDate: t.StartDate.Format(time.RFC3339),
+		EndDate:   t.EndDate.Format(time.RFC3339),
+	}, nil
 }
 
 func (s *targetService) AddProgress(userID uint, targetID uint, req *dto.AddTargetProgressRequest) (*dto.TargetProgressResponse, error) {

@@ -1,0 +1,607 @@
+{
+  "info": {
+    "_postman_id": "b6e1f44e-6c64-4d3a-bb79-12b0d9db4f15",
+    "name": "Revoks Gym Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "baseurl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "createdUserId",
+      "value": ""
+    },
+    {
+      "key": "qrToken",
+      "value": ""
+    },
+    {
+      "key": "loginEmail",
+      "value": "test.user+001@example.com"
+    },
+    {
+      "key": "loginPassword",
+      "value": "password123"
+    },
+    {
+      "key": "targetId",
+      "value": ""
+    },
+    {
+      "key": "apiPrefix",
+      "value": "/api/v1"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Public",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health"
+          },
+          "response": []
+        },
+        {
+          "name": "Auth - Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = null; }",
+                  "if (json && json.data && json.data.access_token) {",
+                  "  pm.environment.set('token', json.data.access_token);",
+                  "  pm.collectionVariables.set('token', json.data.access_token);",
+                  "}",
+                  "if (json && json.data && json.data.user && json.data.user.id) {",
+                  "  pm.environment.set('userId', json.data.user.id);",
+                  "  pm.collectionVariables.set('userId', json.data.user.id);",
+                  "}",
+                  "pm.test('token saved (if present)', function () { pm.expect(pm.environment.get('token')).to.not.be.undefined; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{loginEmail}}\",\n  \"password\": \"{{loginPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}{{apiPrefix}}/auth/login"
+          },
+          "response": []
+        },
+        {
+          "name": "QR - Scan (Public)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{qrToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}{{apiPrefix}}/qr/scan"
+          },
+          "response": []
+        },
+        {
+          "name": "Users - Create",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = null; }",
+                  "if (json && json.data && json.data.id) {",
+                  "  pm.environment.set('createdUserId', json.data.id);",
+                  "  pm.collectionVariables.set('createdUserId', json.data.id);",
+                  "}",
+                  "pm.test('createdUserId saved (if present)', function () {",
+                  "  pm.expect(pm.environment.get('createdUserId')).to.not.be.undefined;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"{{loginEmail}}\",\n  \"password\": \"{{loginPassword}}\",\n  \"phone\": \"081234567890\",\n  \"address\": \"Jakarta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}{{apiPrefix}}/users/"
+          },
+          "response": []
+        },
+        {
+          "name": "Users - Get All (page/per_page)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/users?page=1&per_page=10"
+          },
+          "response": []
+        },
+        {
+          "name": "Users - Get By ID",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/users/{{userId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Users - Update",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User Updated\",\n  \"phone\": \"081234567891\",\n  \"address\": \"Bandung\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}{{apiPrefix}}/users/{{createdUserId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Users - Change Password",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"old_password\": \"password123\",\n  \"new_password\": \"password456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}{{apiPrefix}}/users/{{createdUserId}}/password"
+          },
+          "response": []
+        },
+        {
+          "name": "Users - Delete",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/users/{{createdUserId}}"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10 - Authed (Bearer token)",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Me - Get",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/me"
+          },
+          "response": []
+        },
+        {
+          "name": "Membership - Get My Membership",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/membership"
+          },
+          "response": []
+        },
+        {
+          "name": "Membership - Renew",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"months\": 1,\n  \"plan\": \"basic\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}{{apiPrefix}}/membership/renew"
+          },
+          "response": []
+        },
+        {
+          "name": "QR - Get My QR Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = null; }",
+                  "if (json && json.data && json.data.token) {",
+                  "  pm.environment.set('qrToken', json.data.token);",
+                  "  pm.collectionVariables.set('qrToken', json.data.token);",
+                  "}",
+                  "pm.test('qrToken saved (if present)', function () {",
+                  "  pm.expect(pm.environment.get('qrToken')).to.not.be.undefined;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/qr/code"
+          },
+          "response": []
+        },
+        {
+          "name": "Notifications - My List (limit)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/notifications?limit=50"
+          },
+          "response": []
+        },
+        {
+          "name": "Notifications - Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/notifications/{{notificationId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Notifications - Mark Read",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/notifications/{{notificationId}}/read"
+          },
+          "response": []
+        },
+        {
+          "name": "Attendance - My History (limit)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/attendance/history?limit=30"
+          },
+          "response": []
+        },
+        {
+          "name": "Workouts - My Progress History (limit)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/workouts/progress?limit=30"
+          },
+          "response": []
+        },
+        {
+          "name": "Workouts - Create Progress",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Push Day\",\n  \"notes\": \"Bench press 4x10\",\n  \"recorded_at\": \"2026-02-05T10:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}{{apiPrefix}}/workouts/progress"
+          },
+          "response": []
+        },
+        {
+          "name": "Templates - My Followed",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/templates/followed"
+          },
+          "response": []
+        },
+        {
+          "name": "Templates - Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/templates/{{templateId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Templates - Follow",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"template_id\": {{templateId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}{{apiPrefix}}/templates/follow"
+          },
+          "response": []
+        },
+        {
+          "name": "Targets - My Targets (period optional)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/targets?period={{targetPeriod}}"
+          },
+          "response": []
+        },
+        {
+          "name": "Targets - Create",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let json = {};",
+                  "try { json = pm.response.json(); } catch (e) { json = null; }",
+                  "if (json && json.data && json.data.id) {",
+                  "  pm.environment.set('targetId', json.data.id);",
+                  "  pm.collectionVariables.set('targetId', json.data.id);",
+                  "}",
+                  "pm.test('targetId saved (if present)', function () {",
+                  "  pm.expect(pm.environment.get('targetId') || pm.collectionVariables.get('targetId')).to.not.be.undefined;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"period\": \"weekly\",\n  \"title\": \"Bench Press Target\",\n  \"goal_value\": 100,\n  \"start_date\": \"2026-02-05T00:00:00Z\",\n  \"end_date\": \"2026-02-12T00:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}{{apiPrefix}}/targets"
+          },
+          "response": []
+        },
+        {
+          "name": "Targets - Progress History (limit)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/targets/{{targetId}}/progress?limit=30"
+          },
+          "response": []
+        },
+        {
+          "name": "Targets - Add Progress",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"value\": 10,\n  \"recorded_at\": \"2026-02-05T10:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}{{apiPrefix}}/targets/{{targetId}}/progress"
+          },
+          "response": []
+        },
+        {
+          "name": "PT - List",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/pt"
+          },
+          "response": []
+        },
+        {
+          "name": "PT - Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/pt/{{trainerId}}"
+          },
+          "response": []
+        },
+        {
+          "name": "PT - Schedule",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/pt/{{trainerId}}/schedule"
+          },
+          "response": []
+        },
+        {
+          "name": "Settings - Get",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}{{apiPrefix}}/settings"
+          },
+          "response": []
+        },
+        {
+          "name": "Settings - Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"push_enabled\": true,\n  \"email_enabled\": false,\n  \"language\": \"id\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}{{apiPrefix}}/settings"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

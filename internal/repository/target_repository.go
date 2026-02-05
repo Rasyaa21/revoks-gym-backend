@@ -9,6 +9,7 @@ import (
 type TargetRepository interface {
 	ListByUserIDAndPeriod(userID uint, period string) ([]models.Target, error)
 	FindByID(id uint) (*models.Target, error)
+	Create(t *models.Target) error
 	CreateProgress(p *models.TargetProgress) error
 	ListProgress(targetID uint, limit int) ([]models.TargetProgress, error)
 }
@@ -39,6 +40,10 @@ func (r *targetRepository) FindByID(id uint) (*models.Target, error) {
 		return nil, err
 	}
 	return &t, nil
+}
+
+func (r *targetRepository) Create(t *models.Target) error {
+	return r.db.Create(t).Error
 }
 
 func (r *targetRepository) CreateProgress(p *models.TargetProgress) error {

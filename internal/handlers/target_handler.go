@@ -30,6 +30,22 @@ func (h *TargetHandler) MyTargets(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(dto.NewSuccessResponse("Targets retrieved", resp))
 }
 
+func (h *TargetHandler) Create(c *fiber.Ctx) error {
+	userID, err := middleware.GetUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(dto.NewErrorResponse("Unauthorized", err.Error()))
+	}
+	var req dto.CreateTargetRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(dto.NewErrorResponse("Invalid request body", err.Error()))
+	}
+	resp, err := h.service.CreateTarget(userID, &req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(dto.NewErrorResponse("Failed to create target", err.Error()))
+	}
+	return c.Status(fiber.StatusCreated).JSON(dto.NewSuccessResponse("Target created", resp))
+}
+
 func (h *TargetHandler) AddProgress(c *fiber.Ctx) error {
 	userID, err := middleware.GetUserID(c)
 	if err != nil {
