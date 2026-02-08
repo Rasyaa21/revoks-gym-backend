@@ -10,17 +10,14 @@ import (
 )
 
 func SetupRoutes(app *fiber.App) {
-	// Initialize dependencies
 	db := config.GetDB()
 	repo := repository.NewRepository(db)
 	svc := services.NewService(repo)
 	handler := handlers.NewHandler(svc)
 
-	// API routes
 	api := app.Group("/api")
 	v1 := api.Group("/v1")
 
-	// User routes
 	users := v1.Group("/users")
 	users.Post("/", handler.User.CreateUser)
 	users.Get("/", handler.User.GetAllUsers)

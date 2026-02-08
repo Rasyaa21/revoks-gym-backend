@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type UserHandler struct {
@@ -46,12 +47,12 @@ func (h *UserHandler) GetAllUsers(c *fiber.Ctx) error {
 
 // GetUserByID handles GET /api/users/:id
 func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("id"), 10, 32)
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(dto.NewErrorResponse("Invalid user ID", err.Error()))
 	}
 
-	user, err := h.service.GetUserByID(uint(id))
+	user, err := h.service.GetUserByID(id)
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(dto.NewErrorResponse("User not found", err.Error()))
 	}
@@ -61,7 +62,7 @@ func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
 
 // UpdateUser handles PUT /api/users/:id
 func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("id"), 10, 32)
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(dto.NewErrorResponse("Invalid user ID", err.Error()))
 	}
@@ -71,7 +72,7 @@ func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(dto.NewErrorResponse("Invalid request body", err.Error()))
 	}
 
-	user, err := h.service.UpdateUser(uint(id), &req)
+	user, err := h.service.UpdateUser(id, &req)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(dto.NewErrorResponse("Failed to update user", err.Error()))
 	}
@@ -81,12 +82,12 @@ func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
 
 // DeleteUser handles DELETE /api/users/:id
 func (h *UserHandler) DeleteUser(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("id"), 10, 32)
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(dto.NewErrorResponse("Invalid user ID", err.Error()))
 	}
 
-	if err := h.service.DeleteUser(uint(id)); err != nil {
+	if err := h.service.DeleteUser(id); err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(dto.NewErrorResponse("Failed to delete user", err.Error()))
 	}
 
@@ -95,7 +96,7 @@ func (h *UserHandler) DeleteUser(c *fiber.Ctx) error {
 
 // ChangePassword handles PUT /api/users/:id/password
 func (h *UserHandler) ChangePassword(c *fiber.Ctx) error {
-	id, err := strconv.ParseUint(c.Params("id"), 10, 32)
+	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(dto.NewErrorResponse("Invalid user ID", err.Error()))
 	}
@@ -105,7 +106,7 @@ func (h *UserHandler) ChangePassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(dto.NewErrorResponse("Invalid request body", err.Error()))
 	}
 
-	if err := h.service.ChangePassword(uint(id), &req); err != nil {
+	if err := h.service.ChangePassword(id, &req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(dto.NewErrorResponse("Failed to change password", err.Error()))
 	}
 

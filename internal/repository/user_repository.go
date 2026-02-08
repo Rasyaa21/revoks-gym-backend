@@ -3,16 +3,17 @@ package repository
 import (
 	"fiber-gorm-app/internal/models"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type UserRepository interface {
 	Create(user *models.User) error
 	FindAll(page, perPage int) ([]models.User, int64, error)
-	FindByID(id uint) (*models.User, error)
+	FindByID(id uuid.UUID) (*models.User, error)
 	FindByEmail(email string) (*models.User, error)
 	Update(user *models.User) error
-	Delete(id uint) error
+	Delete(id uuid.UUID) error
 }
 
 type userRepository struct {
@@ -44,9 +45,9 @@ func (r *userRepository) FindAll(page, perPage int) ([]models.User, int64, error
 	return users, total, nil
 }
 
-func (r *userRepository) FindByID(id uint) (*models.User, error) {
+func (r *userRepository) FindByID(id uuid.UUID) (*models.User, error) {
 	var user models.User
-	if err := r.db.First(&user, id).Error; err != nil {
+	if err := r.db.Where("user_id = ?", id).First(&user).Error; err != nil {
 		return nil, err
 	}
 	return &user, nil
@@ -64,6 +65,6 @@ func (r *userRepository) Update(user *models.User) error {
 	return r.db.Save(user).Error
 }
 
-func (r *userRepository) Delete(id uint) error {
-	return r.db.Delete(&models.User{}, id).Error
+func (r *userRepository) Delete(id uuid.UUID) error {
+	return r.db.Where("user_id = ?", id).Delete(&models.User{}).Error
 }

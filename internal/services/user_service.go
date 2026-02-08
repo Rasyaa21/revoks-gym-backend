@@ -8,6 +8,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -15,10 +16,10 @@ import (
 type UserService interface {
 	CreateUser(req *dto.CreateUserRequest) (*dto.UserResponse, error)
 	GetAllUsers(page, perPage int) ([]dto.UserResponse, *dto.PaginationResponse, error)
-	GetUserByID(id uint) (*dto.UserResponse, error)
-	UpdateUser(id uint, req *dto.UpdateUserRequest) (*dto.UserResponse, error)
-	DeleteUser(id uint) error
-	ChangePassword(id uint, req *dto.ChangePasswordRequest) error
+	GetUserByID(id uuid.UUID) (*dto.UserResponse, error)
+	UpdateUser(id uuid.UUID, req *dto.UpdateUserRequest) (*dto.UserResponse, error)
+	DeleteUser(id uuid.UUID) error
+	ChangePassword(id uuid.UUID, req *dto.ChangePasswordRequest) error
 }
 
 type userService struct {
@@ -30,10 +31,12 @@ func NewUserService(repo repository.UserRepository) UserService {
 }
 
 func (s *userService) CreateUser(req *dto.CreateUserRequest) (*dto.UserResponse, error) {
-	// Check if email already exists
-	existingUser, _ := s.repo.FindByEmail(req.Email)
-	if existingUser != nil {
-		return nil, errors.New("email already registered")
+	// Check if email already exists (if provided)
+	if req.Email != "" {
+		existingUser, _ := s.repo.FindByEmail(req.Email)
+		if existingUser != nil {
+			return nil, errors.New("email already registered")
+		}
 	}
 
 	// Hash password
@@ -43,12 +46,21 @@ func (s *userService) CreateUser(req *dto.CreateUserRequest) (*dto.UserResponse,
 	}
 
 	user := &models.User{
-		Name:     req.Name,
-		Email:    req.Email,
-		Password: string(hashedPassword),
-		Phone:    req.Phone,
-		Address:  req.Address,
-		IsActive: true,
+		Role:         models.UserRole(req.Role),
+		FullName:     req.FullName,
+		PasswordHash: string(hashedPassword),
+		Status:       models.UserStatusActive,
+	}
+
+	// Set optional fields if provided
+	if req.Email != "" {
+		user.Email = &req.Email
+	}
+	if req.Phone != "" {
+		user.Phone = &req.Phone
+	}
+	if req.PhotoURL != "" {
+		user.PhotoURL = &req.PhotoURL
 	}
 
 	if err := s.repo.Create(user); err != nil {
@@ -86,7 +98,7 @@ func (s *userService) GetAllUsers(page, perPage int) ([]dto.UserResponse, *dto.P
 	return responses, pagination, nil
 }
 
-func (s *userService) GetUserByID(id uint) (*dto.UserResponse, error) {
+func (s *userService) GetUserByID(id uuid.UUID) (*dto.UserResponse, error) {
 	user, err := s.repo.FindByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -98,7 +110,7 @@ func (s *userService) GetUserByID(id uint) (*dto.UserResponse, error) {
 	return s.toUserResponse(user), nil
 }
 
-func (s *userService) UpdateUser(id uint, req *dto.UpdateUserRequest) (*dto.UserResponse, error) {
+func (s *userService) UpdateUser(id uuid.UUID, req *dto.UpdateUserRequest) (*dto.UserResponse, error) {
 	user, err := s.repo.FindByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -108,22 +120,25 @@ func (s *userService) UpdateUser(id uint, req *dto.UpdateUserRequest) (*dto.User
 	}
 
 	// Update fields if provided
-	if req.Name != "" {
-		user.Name = req.Name
+	if req.FullName != "" {
+		user.FullName = req.FullName
 	}
 	if req.Email != "" {
 		// Check if new email is already used by another user
 		existingUser, _ := s.repo.FindByEmail(req.Email)
-		if existingUser != nil && existingUser.ID != id {
+		if existingUser != nil && existingUser.UserID != id {
 			return nil, errors.New("email already used by another user")
 		}
-		user.Email = req.Email
+		user.Email = &req.Email
 	}
 	if req.Phone != "" {
-		user.Phone = req.Phone
+		user.Phone = &req.Phone
 	}
-	if req.Address != "" {
-		user.Address = req.Address
+	if req.PhotoURL != "" {
+		user.PhotoURL = &req.PhotoURL
+	}
+	if req.Status != "" {
+		user.Status = models.UserStatus(req.Status)
 	}
 
 	if err := s.repo.Update(user); err != nil {
@@ -133,7 +148,7 @@ func (s *userService) UpdateUser(id uint, req *dto.UpdateUserRequest) (*dto.User
 	return s.toUserResponse(user), nil
 }
 
-func (s *userService) DeleteUser(id uint) error {
+func (s *userService) DeleteUser(id uuid.UUID) error {
 	_, err := s.repo.FindByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -145,7 +160,7 @@ func (s *userService) DeleteUser(id uint) error {
 	return s.repo.Delete(id)
 }
 
-func (s *userService) ChangePassword(id uint, req *dto.ChangePasswordRequest) error {
+func (s *userService) ChangePassword(id uuid.UUID, req *dto.ChangePasswordRequest) error {
 	user, err := s.repo.FindByID(id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -155,7 +170,7 @@ func (s *userService) ChangePassword(id uint, req *dto.ChangePasswordRequest) er
 	}
 
 	// Verify old password
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.OldPassword)); err != nil {
 		return errors.New("old password is incorrect")
 	}
 
@@ -165,19 +180,28 @@ func (s *userService) ChangePassword(id uint, req *dto.ChangePasswordRequest) er
 		return err
 	}
 
-	user.Password = string(hashedPassword)
+	user.PasswordHash = string(hashedPassword)
 	return s.repo.Update(user)
 }
 
 func (s *userService) toUserResponse(user *models.User) *dto.UserResponse {
-	return &dto.UserResponse{
-		ID:        user.ID,
-		Name:      user.Name,
-		Email:     user.Email,
-		Phone:     user.Phone,
-		Address:   user.Address,
-		IsActive:  user.IsActive,
+	resp := &dto.UserResponse{
+		UserID:    user.UserID.String(),
+		Role:      string(user.Role),
+		FullName:  user.FullName,
+		Status:    string(user.Status),
 		CreatedAt: user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt: user.UpdatedAt.Format(time.RFC3339),
 	}
+	
+	if user.Email != nil {
+		resp.Email = *user.Email
+	}
+	if user.Phone != nil {
+		resp.Phone = *user.Phone
+	}
+	if user.PhotoURL != nil {
+		resp.PhotoURL = *user.PhotoURL
+	}
+	
+	return resp
 }

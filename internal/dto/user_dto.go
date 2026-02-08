@@ -2,31 +2,33 @@ package dto
 
 // CreateUserRequest represents the request body for creating a user
 type CreateUserRequest struct {
-	Name     string `json:"name" validate:"required,min=2,max=255"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required,min=6"`
-	Phone    string `json:"phone" validate:"omitempty,min=10,max=20"`
-	Address  string `json:"address" validate:"omitempty"`
+	Role      string `json:"role" validate:"required,oneof=SUPERADMIN ADMIN CASHIER MEMBER PT"`
+	FullName  string `json:"full_name" validate:"required,min=2,max=255"`
+	Email     string `json:"email" validate:"omitempty,email"`
+	Phone     string `json:"phone" validate:"omitempty,min=10,max=20"`
+	Password  string `json:"password" validate:"required,min=6"`
+	PhotoURL  string `json:"photo_url" validate:"omitempty,url"`
 }
 
 // UpdateUserRequest represents the request body for updating a user
 type UpdateUserRequest struct {
-	Name    string `json:"name" validate:"omitempty,min=2,max=255"`
-	Email   string `json:"email" validate:"omitempty,email"`
-	Phone   string `json:"phone" validate:"omitempty,min=10,max=20"`
-	Address string `json:"address" validate:"omitempty"`
+	FullName string `json:"full_name" validate:"omitempty,min=2,max=255"`
+	Email    string `json:"email" validate:"omitempty,email"`
+	Phone    string `json:"phone" validate:"omitempty,min=10,max=20"`
+	PhotoURL string `json:"photo_url" validate:"omitempty,url"`
+	Status   string `json:"status" validate:"omitempty,oneof=active blocked"`
 }
 
 // UserResponse represents the response body for a user
 type UserResponse struct {
-	ID        uint   `json:"id"`
-	Name      string `json:"name"`
+	UserID    string `json:"user_id"`
+	Role      string `json:"role"`
+	FullName  string `json:"full_name"`
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
-	Address   string `json:"address"`
-	IsActive  bool   `json:"is_active"`
+	PhotoURL  string `json:"photo_url"`
+	Status    string `json:"status"`
 	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
 }
 
 // LoginRequest represents the request body for login
